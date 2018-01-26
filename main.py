@@ -13,13 +13,15 @@ GIT_API_BASE = 'https://api.github.com'
 AUTH = ()
 
 class Commit:
-    def __init__(self, message, author, date_):
+    def __init__(self, sha, message, author, date_):
+        self.sha = sha
         self.message = message
         self.author = author
         self.date = date_
 
     def __repr__(self):
-        repr_ = '<\n{}\n{}\n{}\n>'.format(self.message, self.date, self.author)
+        repr_ = '<\n{}\n{}\n{}\n{}\n>'.format(self.sha, self.message,
+                                              self.date, self.author)
         return repr_
 
 
@@ -57,8 +59,13 @@ class Repo:
         url = '%s/repos/%s/commits' % (GIT_API_BASE, self.repo_name)
         data = {}
         data['since'] = since.strftime('%Y-%m-%dT%H:%M:%SZ')
-        self.commits = [Commit(i['commit']['message'], i['commit']['committer']['name'], i['commit']['committer']['date'])
-                        for i in self.result_generator(url, data)]
+        self.commits = [
+            Commit(i['sha'],
+                   i['commit']['message'],
+                   i['commit']['committer']['name'],
+                   i['commit']['committer']['date'])
+            for i in self.result_generator(url, data)
+            ]
 
     def update_last_update_time(self):
         url = '%s/repos/%s/commits' % (GIT_API_BASE, self.repo_name)
